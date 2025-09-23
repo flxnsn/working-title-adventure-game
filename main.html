@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Moth</title>
     <link rel="stylesheet" href="main.css">
+    <style>
+        .game-container {
+            filter: url(#crtDistort);
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
@@ -23,4 +28,59 @@
     </div>
     <script src="main.js"></script>
 </body>
+
+<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+      <!--
+        Barrel distortion filter:
+         - feImage: creates a radial ramp (center -> edge) used as displacement map
+         - feGaussianBlur: smooth the map
+         - feComponentTransfer: bias the channels so displacement is centered
+         - feDisplacementMap: applies the displacement to SourceGraphic
+      -->
+      <filter id="barrel" filterUnits="objectBoundingBox" primitiveUnits="objectBoundingBox">
+        <!-- displacement map: an inline SVG radial gradient as image -->
+        <feImage result="ramp"
+                 x="0" y="0" width="1" height="1"
+                 preserveAspectRatio="none"
+                 href="data:image/svg+xml;utf8,
+                   <svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'>
+                     <defs>
+                       <radialGradient id='g' cx='50%25' cy='50%25' r='75%25'>
+                         <stop offset='0%25' stop-color='rgb(128,128,128)'/>
+                         <stop offset='100%25' stop-color='rgb(255,255,255)'/>
+                       </radialGradient>
+                     </defs>
+                     <rect width='100' height='100' fill='url(%23g)'/>
+                   </svg>"/>
+
+        <!-- smooth the ramp (optional but makes it nicer) -->
+        <feGaussianBlur in="ramp" stdDeviation="0.8" result="smoothRamp"/>
+
+        <!-- map channels so the center produces little displacement (center ~ 128)
+             and edges produce more displacement (towards 255 or 0). -->
+        <feComponentTransfer in="smoothRamp" result="map">
+          <!-- leave R and G as-is but offset slightly so zero-centered displacement -->
+          <feFuncR type="table" tableValues="0.45 0.95"/>
+          <feFuncG type="table" tableValues="0.45 0.95"/>
+          <!-- alpha unused -->
+        </feComponentTransfer>
+
+        <!-- apply displacement: tweak 'scale' to change strength -->
+        <!-- xChannelSelector/yChannelSelector read which color channel drives each axis -->
+        <feDisplacementMap in="SourceGraphic" in2="map"
+                           scale="40"
+                           xChannelSelector="R" yChannelSelector="G"
+                           result="distorted"/>
+      </filter>
+    </defs>
+
+    <!-- Use any image source you like -->
+    <image href="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format&fit=crop"
+           x="0" y="0" width="800" height="500"
+           preserveAspectRatio="xMidYMid slice"
+           filter="url(#barrel)"/>
+  </svg>
+
 </html>

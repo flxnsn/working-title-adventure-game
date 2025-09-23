@@ -10,6 +10,8 @@ body {
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            filter: url(#barrel);
+            
         }
 
         .game-container {
@@ -19,7 +21,10 @@ body {
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
+            
         }
+
+        
 
         .display {
             width: 95vmin;
