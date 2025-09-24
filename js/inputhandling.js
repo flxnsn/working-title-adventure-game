@@ -20,11 +20,18 @@ var currentScreenData = TestArray;
 
 function handlePlayerInput(input) {
 
-    const check = input.toLowerCase();
+    const check = (input.toLowerCase()).split(" ");
+    //alert(check);
 
     for (let i = 0; i < currentScreenData.length; i++) {
-        if ((currentScreenData[i][0].some(subArr => subArr.includes(check))) && ((currentScreenData[i][1].some(subArr => subArr.includes(check))) == false)) {
-            alert(currentScreenData[i][2] + " " + currentScreenData[i][3]);
+        if ((currentScreenData[i][0].some(subArr => check.includes(subArr))) && ((currentScreenData[i][1].some(subArr => check.includes(subArr))) == false)) {
+            if (!(currentScreenData[i][2].length == 0)) {
+                alert(currentScreenData[i][2]);
+            }
+            if (!(currentScreenData[i][3].length == 0)) {
+                alert(currentScreenData[i][3]);
+            }
+
         }        
     }
     // bug, also triggers for empty lines? Or not... strange...
