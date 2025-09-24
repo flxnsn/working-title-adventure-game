@@ -11,9 +11,9 @@ playerInput.addEventListener('keypress', function (e) {
 
 var TestArray = [
                 [["true"],["false"],["yay"],["yayyy"]],
-                [[],[],[],[]],
-                [[],[],[],[]],
-                [[],[],[],[]]
+                [["look", "get up"],["not"],["you look around"],["scenery"]],
+                [["go to path", "take path"],[],["you take the path"],["pathway and stuff"]],
+                [["go back", "return"],[],["you cannot return"],[]]
 ];
 
 var currentScreenData = TestArray;
@@ -21,15 +21,19 @@ var currentScreenData = TestArray;
 function handlePlayerInput(input) {
 
     const check = (input.toLowerCase()).split(" ");
+    //so multi word phrases cnnot be detected...
+    //typewriter effect gone
     //alert(check);
 
     for (let i = 0; i < currentScreenData.length; i++) {
         if ((currentScreenData[i][0].some(subArr => check.includes(subArr))) && ((currentScreenData[i][1].some(subArr => check.includes(subArr))) == false)) {
             if (!(currentScreenData[i][2].length == 0)) {
-                alert(currentScreenData[i][2]);
+                //alert(currentScreenData[i][2]);
+                updateInfoPanel(currentScreenData[i][2]);
             }
             if (!(currentScreenData[i][3].length == 0)) {
-                alert(currentScreenData[i][3]);
+                //alert(currentScreenData[i][3]);
+                updateAsciiDisplay(currentScreenData[i][3], "instant");
             }
 
         }        
