@@ -9,10 +9,31 @@ playerInput.addEventListener('keypress', function (e) {
     }
 });
 
+var TestArray = [
+                [["true"],["false"],["yay"],["yayyy"]],
+                [[],[],[],[]],
+                [[],[],[],[]],
+                [[],[],[],[]]
+];
+
+var currentScreenData = TestArray;
+
+function handlePlayerInput(input) {
+
+    const check = input.toLowerCase();
+
+    for (let i = 0; i < currentScreenData.length; i++) {
+        if ((currentScreenData[i][0].some(subArr => subArr.includes(check))) && ((currentScreenData[i][1].some(subArr => subArr.includes(check))) == false)) {
+            alert(currentScreenData[i][2] + " " + currentScreenData[i][3]);
+        }        
+    }
+    // bug, also triggers for empty lines? Or not... strange...
+}
+
 
 // Function to handle player input
-function handlePlayerInput(input) {
-    console.log("Player input:", input);
+function handlePlayerInputBackup(input) {
+    // console.log("Player input:", input);
 
     // Example command processing
     if (input.toLowerCase().includes('help')) {
