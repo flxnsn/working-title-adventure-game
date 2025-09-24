@@ -10,7 +10,7 @@ body {
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            filter: url(#barrel);
+            /* filter: url(#barrel); */
             
         }
 
