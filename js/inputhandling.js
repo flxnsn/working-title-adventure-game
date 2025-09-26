@@ -1,12 +1,39 @@
 // Event listener for Enter key
-playerInput.addEventListener('keypress', function (e) {
-    if (e.key === 'Enter' && !isInfoUpdating) {
-        const input = playerInput.value.trim();
-        if (input) {
-            handlePlayerInput(input);
-            playerInput.value = ''; // Clear input field
-        }
+let inputAllowed = true;   // set to false to block input
+
+document.addEventListener('keydown', function (e) {
+  if (!inputAllowed) return;   // do nothing when blocked
+
+  // ENTER: submit
+  if (e.key === 'Enter' && !isInfoUpdating) {
+    const input = playerInput.value.trim();
+    if (input) {
+      handlePlayerInput(input);
+      playerInput.value = '';  // clear after handling
     }
+    e.preventDefault();
+    return;
+  }
+
+  // BACKSPACE: delete last character
+  if (e.key === 'Backspace') {
+    playerInput.value = playerInput.value.slice(0, -1);
+    e.preventDefault();
+    return;
+  }
+
+  // Letters and numbers: add to value
+  if (/^[a-z0-9]$/i.test(e.key)) {
+    playerInput.value += e.key;
+    e.preventDefault();
+    return;
+  }
+
+  // Optional: allow a few punctuation marks
+  if (/^[!.:,?]$/.test(e.key)) {
+    playerInput.value += e.key;
+    e.preventDefault();
+  }
 });
 
 var TestArray = [
