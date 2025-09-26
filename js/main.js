@@ -6,6 +6,8 @@ let gameState = {
     location: "Forest Clearing"
 };
 
+const soundManager = new SoundManager();
+
 let isInfoUpdating = false; // Flag to track if info panel is updating
 
 // DOM elements

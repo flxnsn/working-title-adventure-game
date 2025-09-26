@@ -30,6 +30,10 @@ function handlePlayerInput(input) {
             if (!(currentScreenData[i][2].length == 0)) {
                 //alert(currentScreenData[i][2]);
                 updateInfoPanel(currentScreenData[i][2]);
+
+                if (currentScreenData[i][2] == "yay") {
+                    soundManager.playSound('sounds/bop.mp3');
+                }
             }
             if (!(currentScreenData[i][3].length == 0)) {
                 //alert(currentScreenData[i][3]);
