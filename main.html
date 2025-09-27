@@ -10,6 +10,23 @@
 </head>
 
 <body>
+
+  <div class="game-container">
+        <!-- <h1>Current Screen</h1> -->
+
+        <!-- ASCII Art Display Area -->
+        <div id="asciiDisplay" class="display" readonly></div>
+
+        <!-- Player Information Panel -->
+        <textarea id="infoPanel" class="info-panel" readonly></textarea>
+
+        <!-- Player Input Field -->
+        <div class="input-container">
+          <textarea id="playerInput" class="input-field" placeholder="Input..." readonly></textarea>
+        </div>
+  </div>
+
+
   <svg xmlns="http://www.w3.org/2000/svg" id="page-svg" width="70%" height="200%">
   <defs>
     <!-- Displacement filter using your embedded Mask.png -->
@@ -29,29 +46,16 @@
   
     <foreignObject x="0" y="0" width="100%" height="100%" filter="url(#)">
       <!-- Give the inner HTML container an id so JS can find it -->
-      <div class="game-container">
-        <h1>Current Screen</h1>
-
-        <!-- ASCII Art Display Area -->
-        <textarea id="asciiDisplay" class="display" readonly></textarea>
-
-        <!-- Player Information Panel -->
-        <textarea id="infoPanel" class="info-panel" readonly></textarea>
-
-        <!-- Player Input Field -->
-        <div class="input-container">
-          <textarea id="playerInput" class="input-field" placeholder="Input..." readonly></textarea>
-        </div>
-      </div>
+      
     </foreignObject>
 
 </svg>
-
+  <script src="js\art.js"></script>
   <script src="js\transitions.js"></script>
   <script src="js\updatedisplay.js"></script>
   <script src="js\updateinfo.js"></script>
   <script src="js\inputhandling.js"></script>
-  <script src="js\soundmanager.js"></script>
+  <script src="js\soundmanager.js"></script> 
   <script src="js\main.js"></script>
 
 </body>

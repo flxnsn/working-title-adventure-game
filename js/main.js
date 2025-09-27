@@ -18,19 +18,7 @@ const playerInput = document.getElementById('playerInput');
 // Initialize game with test data
 function initializeGame() {
     loadTestScene1('instant');
-    updateInfoPanel(`Welcome to the ASCII Adventure Game!
-
-Current Status:
-Player: ${gameState.playerName}
-Health: ${gameState.health}/100
-Level: ${gameState.level}
-Location: ${gameState.location}
-
-Commands to test transitions:
-- 'look': Left-to-right transition to cave
-- 'cave': Delete-and-write transition to cave  
-- 'forest': Random transition back to forest
-- 'help': Show all commands`);
+    updateInfoPanel(`Welcome to the Untilted Adventure Game!`);
 
     // Focus on input field
     playerInput.focus();

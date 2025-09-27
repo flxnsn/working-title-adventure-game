@@ -37,7 +37,7 @@ document.addEventListener('keydown', function (e) {
 });
 
 var TestArray = [
-                [["true"],["false"],["yay"],["yayyy"]],
+                [["true"],["false"],["yay"],[testArt]],
                 [["look", "get up"],["not"],["you look around"],["scenery"]],
                 [["go to path", "take path"],[],["you take the path"],["pathway and stuff"]],
                 [["go back", "return"],[],["you cannot return"],[]]
@@ -60,11 +60,13 @@ function handlePlayerInput(input) {
 
                 if (currentScreenData[i][2] == "yay") {
                     soundManager.playSound('sounds/bop.mp3');
+                    
                 }
             }
-            if (!(currentScreenData[i][3].length == 0)) {
+            if (!(currentScreenData[i][3] == null)) {
                 //alert(currentScreenData[i][3]);
-                updateAsciiDisplay(currentScreenData[i][3], "instant");
+                //updateAsciiDisplay(currentScreenData[i][3], "instant");
+                document.getElementById('asciiDisplay').innerHTML = currentScreenData[i][3];
             }
 
         }        
