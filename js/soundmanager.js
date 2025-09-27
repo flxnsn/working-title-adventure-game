@@ -49,6 +49,40 @@ class SoundManager {
         return soundId;
     }
 
+    // Play a sound with random pitch variation (95%, 100%, or 105%)
+    playSoundRandomPitch(soundUrl, volume = 1.0) {
+        const audio = new Audio(soundUrl);
+        audio.volume = this.globalVolume * volume;
+
+        // Random pitch: 95%, 100%, or 105%
+        const pitchOptions = [0.9, 0.95, 1.0, 1.05, 1.1];
+        const randomPitch = pitchOptions[Math.floor(Math.random() * pitchOptions.length)];
+        audio.playbackRate = randomPitch;
+        audio.preservesPitch = false;
+
+        // Store reference to manage volume changes
+        const soundId = Date.now() + Math.random();
+        this.sounds.set(soundId, audio);
+
+        // Clean up when sound ends
+        audio.addEventListener('ended', () => {
+            this.sounds.delete(soundId);
+        });
+
+        // Handle loading errors
+        audio.addEventListener('error', (e) => {
+            console.warn('Sound failed to load:', soundUrl, e);
+            this.sounds.delete(soundId);
+        });
+
+        audio.play().catch(e => {
+            console.warn('Sound failed to play:', soundUrl, e);
+            this.sounds.delete(soundId);
+        });
+
+        return soundId;
+    }
+
     // Start a looping sound
     startLoop(soundUrl, volume = 1.0) {
         // Stop existing loop first
@@ -140,6 +174,9 @@ soundManager.setGlobalVolume(0.8);
 
 // Play a one-time sound
 soundManager.playSound('path/to/your/sound.mp3');
+
+// Random pitch variation (adds variety)
+soundManager.playSoundRandomPitch('coin-pickup.wav');
 
 // Start a looping sound
 soundManager.startLoop('path/to/your/loop.mp3');
