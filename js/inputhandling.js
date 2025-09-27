@@ -63,7 +63,8 @@ var TestArray = [
                 [["true"],["false"],["yay"],[testArt]],
                 [["look", "get up"],["not"],["you look around"],["scenery"]],
                 [["go to path", "take path"],[],["you take the path"],["pathway and stuff"]],
-                [["go back", "return"],[],["you cannot return"],[]]
+                [["go back", "return"],[],["you cannot return"],[]],
+                [["kitty"],[],["kitty"],[kitty]],
 ];
 
 var currentScreenData = TestArray;
