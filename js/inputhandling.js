@@ -32,7 +32,7 @@ document.addEventListener('keydown', function (e) {
   if (/^[a-z0-9]$/i.test(e.key)) {
     playerInput.value += e.key;
     e.preventDefault();
-    let keysounds = ["sounds/Keyboard/typing1.mp3", "sounds/Keyboard/typing2.mp3", "sounds/Keyboard/typing3.mp3", "sounds/Keyboard/typing4.mp3", "sounds/Keyboard/typing5.mp3", "sounds/Keyboard/typing6.mp3", "sounds/Keyboard/typing7.mp3", "sounds/Keyboard/typing8.mp3", "sounds/Keyboard/typing9.mp3",];
+    let keysounds = ["sounds/Keyboard/typing1.mp3", "sounds/Keyboard/typing2.mp3", "sounds/Keyboard/typing3.mp3", "sounds/Keyboard/typing4.mp3", "sounds/Keyboard/typing5.mp3", "sounds/Keyboard/typing6.mp3", "sounds/Keyboard/typing7.mp3", "sounds/Keyboard/typing8.mp3", "sounds/Keyboard/typing9.mp3"];
     let sound = keysounds[Math.floor(Math.random() * keysounds.length)];
     soundManager.playSoundRandomPitch(sound);
     return;
@@ -42,7 +42,7 @@ document.addEventListener('keydown', function (e) {
   if (/^[!.:,?]$/.test(e.key)) {
     playerInput.value += e.key;
     e.preventDefault();
-    let keysounds = ["sounds/Keyboard/typing1.mp3", "sounds/Keyboard/typing2.mp3", "sounds/Keyboard/typing3.mp3", "sounds/Keyboard/typing4.mp3", "sounds/Keyboard/typing5.mp3", "sounds/Keyboard/typing6.mp3", "sounds/Keyboard/typing7.mp3", "sounds/Keyboard/typing8.mp3", "sounds/Keyboard/typing9.mp3",];
+    let keysounds = ["sounds/Keyboard/typing1.mp3", "sounds/Keyboard/typing2.mp3", "sounds/Keyboard/typing3.mp3", "sounds/Keyboard/typing4.mp3", "sounds/Keyboard/typing5.mp3", "sounds/Keyboard/typing6.mp3", "sounds/Keyboard/typing7.mp3", "sounds/Keyboard/typing8.mp3", "sounds/Keyboard/typing9.mp3"];
     let sound = keysounds[Math.floor(Math.random() * keysounds.length)];
     soundManager.playSoundRandomPitch(sound);
     return;

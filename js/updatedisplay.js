@@ -25,6 +25,10 @@ function updateAsciiDisplay(asciiArt, transitionType = 'instant') {
   const currentContent = asciiDisplay.innerHTML;
   const newContent = asciiArt;
 
+  let hddsounds = ["sounds/HDD/loading1.mp3", "sounds/HDD/loading2.mp3", "sounds/HDD/loading3.mp3", "sounds/HDD/loading4.mp3", "sounds/HDD/loading5.mp3", "sounds/HDD/loading6.mp3", "sounds/HDD/loading7.mp3", "sounds/HDD/loading8.mp3", "sounds/HDD/loading9.mp3", "sounds/HDD/loading10.mp3", "sounds/HDD/loading11.mp3"];
+  let sound = hddsounds[Math.floor(Math.random() * hddsounds.length)];
+  soundManager.playSoundRandomPitch(sound);
+
   switch (transitionType) {
     case 'topToBottom':
       topToBottomTransition(currentContent, newContent);

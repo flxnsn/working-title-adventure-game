@@ -36,12 +36,6 @@
       <!-- Try an obvious scale so the effect is apparent -->
       <feDisplacementMap in="SourceGraphic" in2="map" scale="50" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
-
-    <!-- helper pattern (grid) so distortion is visible -->
-    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-      <rect width="20" height="20" fill="#fff"/>
-      <path d="M0 0 L20 0 M0 0 L0 20" stroke="#111" stroke-width="0.6"/>
-    </pattern>
   </defs>
   
     <foreignObject x="0" y="0" width="100%" height="100%" filter="url(#barrel)">
