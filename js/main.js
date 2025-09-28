@@ -9,8 +9,12 @@ const playerInput = document.getElementById('playerInput');
 
 // Initialize game with test data
 function initializeGame() {
-    loadTestScene1('instant');
-    updateInfoPanel(`Welcome to the Untilted Adventure Game!`);
+    updateAsciiDisplay(bench, "init");
+    updateInfoPanel(`Welcome to Untilted Adventure Game!
+Enter mountains for mountains
+Enter castle for castle
+Enter lighthouse for lighthouse
+Enter cat for cat`);
 
     // Focus on input field
     playerInput.focus();

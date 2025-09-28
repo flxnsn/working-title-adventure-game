@@ -60,11 +60,11 @@ document.addEventListener('keydown', function (e) {
 });
 
 var TestArray = [
-                [["true"],["false"],["yay"],[testArt]],
-                [["look", "get up"],["not"],["you look around"],["scenery"]],
-                [["go to path", "take path"],[],["you take the path"],["pathway and stuff"]],
-                [["go back", "return"],[],["you cannot return"],[]],
-                [["kitty"],[],["kitty"],[kitty]],
+                [["mountain", "mountains"],["false"],["mountain range"],[testArt]],
+                [["castle"],["not"],["ross castle, ireland"],[castle]],
+                [["lighthouse", "take path"],[],["lighthouse"],[lighthouse]],
+                [["back", "return"],[],["Welcome to Untilted Adventure Game\!\nEnter mountains for mountains\nEnter castle for castle\nEnter lighthouse for lighthouse\nEnter cat for cat"],[bench]],
+                [["cat", "kitty"],[],["kitty"],[kitty]],
 ];
 
 var currentScreenData = TestArray;

@@ -42,8 +42,7 @@ body {
     box-sizing: border-box;
     box-shadow: 0px 0px 4px 2px;
     /*text-shadow: 0px 0px 32px, 0px 0px 2px, 0px 0px 2px; /* check intensity with proper font */
-    overflow: hidden;
-    
+    overflow: hidden;    
 }
 
 .info-panel {
