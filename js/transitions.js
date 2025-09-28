@@ -1,175 +1,135 @@
-// Left to right transition - update each column progressively
-function leftToRightTransition(oldContent, newContent) {
-    const oldLines = oldContent.split('\n');
-    const newLines = newContent.split('\n');
-    const maxLines = Math.max(oldLines.length, newLines.length);
-    const maxWidth = Math.max(
-        Math.max(...oldLines.map(line => line.length)),
-        Math.max(...newLines.map(line => line.length))
-    );
+// Replace lines from top to bottom
+function topToBottomTransition(oldContent, newContent) {
+  const oldLines = parseHtmlLines(oldContent);
+  const newLines = parseHtmlLines(newContent);
+  const maxLines = Math.max(oldLines.length, newLines.length);
+  
+  let workingLines = [...oldLines];
+  
+  // Ensure we have enough lines in working array
+  while (workingLines.length < maxLines) {
+    workingLines.push('');
+  }
+  
+  let currentLineIndex = 0;
 
-    let currentColumn = 0;
-
-    function updateColumn() {
-        let result = [];
-
-        for (let row = 0; row < maxLines; row++) {
-            const oldLine = oldLines[row] || '';
-            const newLine = newLines[row] || '';
-            let line = '';
-
-            for (let col = 0; col <= maxWidth; col++) {
-                if (col < currentColumn) {
-                    line += newLine[col] || ' ';
-                } else {
-                    line += oldLine[col] || ' ';
-                }
-            }
-            result.push(line.trimEnd());
-        }
-
-        asciiDisplay.value = result.join('\n');
-
-        currentColumn++;
-        if (currentColumn <= maxWidth) {
-            setTimeout(updateColumn, 20);
-        }
+  function updateNextLine() {
+    if (currentLineIndex >= maxLines) {
+      return; // Done
     }
 
-    updateColumn();
+    // Replace current line with new content
+    workingLines[currentLineIndex] = newLines[currentLineIndex] || '';
+    
+    // Update display
+    asciiDisplay.innerHTML = workingLines.slice(0, Math.max(oldLines.length, currentLineIndex + 1)).join('\n');
+
+    currentLineIndex++;
+    if (currentLineIndex < maxLines) {
+      setTimeout(updateNextLine, 50);
+    }
+  }
+
+  updateNextLine();
 }
 
-// Delete from bottom-right, then write from top-left
+// Delete lines bottom to top, then write new lines top to bottom
 function deleteAndWriteTransition(oldContent, newContent) {
-    const oldLines = oldContent.split('\n');
-    let deletingLines = [...oldLines];
+  const oldLines = parseHtmlLines(oldContent);
+  const newLines = parseHtmlLines(newContent);
+  
+  let workingLines = [...oldLines];
 
-    // Phase 1: Delete from bottom-right to top-left
-    function deletePhase() {
-        if (deletingLines.length === 0 || deletingLines.every(line => line.length === 0)) {
-            // Start writing phase
-            setTimeout(() => writePhase(), 100);
-            return;
-        }
-
-        // Delete from the last non-empty line
-        for (let i = deletingLines.length - 1; i >= 0; i--) {
-            if (deletingLines[i].length > 0) {
-                deletingLines[i] = deletingLines[i].slice(0, -1);
-                break;
-            }
-        }
-
-        // Remove empty lines from the end
-        while (deletingLines.length > 0 && deletingLines[deletingLines.length - 1].length === 0) {
-            deletingLines.pop();
-        }
-
-        asciiDisplay.value = deletingLines.join('\n');
-        setTimeout(deletePhase, 8);
+  // Phase 1: Delete from bottom to top
+  function deletePhase() {
+    if (workingLines.length === 0) {
+      // Start writing phase
+      setTimeout(() => writePhase(), 100);
+      return;
     }
 
-    // Phase 2: Write new content line by line
-    function writePhase() {
-        const newLines = newContent.split('\n');
-        let currentLineIndex = 0;
-        let currentCharIndex = 0;
-        let writingLines = [];
+    // Remove last line
+    workingLines.pop();
+    asciiDisplay.innerHTML = workingLines.join('\n');
+    
+    setTimeout(deletePhase, 30);
+  }
 
-        function writeNextChar() {
-            if (currentLineIndex >= newLines.length) {
-                return; // Done
-            }
+  // Phase 2: Write new content line by line from top
+  function writePhase() {
+    let writingLines = [];
+    let currentLineIndex = 0;
 
-            const targetLine = newLines[currentLineIndex];
+    function writeNextLine() {
+      if (currentLineIndex >= newLines.length) {
+        return; // Done
+      }
 
-            if (currentCharIndex === 0) {
-                writingLines.push('');
-            }
+      // Add next line
+      writingLines.push(newLines[currentLineIndex]);
+      asciiDisplay.innerHTML = writingLines.join('\n');
 
-            if (currentCharIndex < targetLine.length) {
-                writingLines[currentLineIndex] += targetLine[currentCharIndex];
-                currentCharIndex++;
-            } else {
-                // Move to next line
-                currentLineIndex++;
-                currentCharIndex = 0;
-            }
-
-            asciiDisplay.value = writingLines.join('\n');
-
-            if (currentLineIndex < newLines.length) {
-                setTimeout(writeNextChar, 15);
-            }
-        }
-
-        writeNextChar();
+      currentLineIndex++;
+      if (currentLineIndex < newLines.length) {
+        setTimeout(writeNextLine, 40);
+      }
     }
 
-    deletePhase();
+    writeNextLine();
+  }
+
+  deletePhase();
 }
 
-// Random character replacement transition
-function randomTransition(oldContent, newContent) {
-    const oldLines = oldContent.split('\n');
-    const newLines = newContent.split('\n');
-    const maxLines = Math.max(oldLines.length, newLines.length);
+// Replace lines in random order
+function randomLineTransition(oldContent, newContent) {
+  const oldLines = parseHtmlLines(oldContent);
+  const newLines = parseHtmlLines(newContent);
+  const maxLines = Math.max(oldLines.length, newLines.length);
+  
+  let workingLines = [...oldLines];
+  
+  // Ensure we have enough lines in working array
+  while (workingLines.length < maxLines) {
+    workingLines.push('');
+  }
 
-    // Create a working copy that we'll modify
-    let workingLines = [];
-    for (let i = 0; i < maxLines; i++) {
-        workingLines.push(oldLines[i] || '');
+  // Create array of line indices to update
+  let lineIndices = [];
+  for (let i = 0; i < maxLines; i++) {
+    // Only add lines that are actually different
+    const oldLine = oldLines[i] || '';
+    const newLine = newLines[i] || '';
+    if (oldLine !== newLine) {
+      lineIndices.push(i);
+    }
+  }
+
+  // Shuffle the line indices for random order
+  for (let i = lineIndices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lineIndices[i], lineIndices[j]] = [lineIndices[j], lineIndices[i]];
+  }
+
+  let currentIndex = 0;
+
+  function updateRandomLine() {
+    if (currentIndex >= lineIndices.length) {
+      return; // Done
     }
 
-    // Create list of all character positions that need to be updated
-    let positions = [];
-    for (let row = 0; row < maxLines; row++) {
-        const oldLine = oldLines[row] || '';
-        const newLine = newLines[row] || '';
-        const maxWidth = Math.max(oldLine.length, newLine.length);
+    const lineIndex = lineIndices[currentIndex];
+    workingLines[lineIndex] = newLines[lineIndex] || '';
 
-        for (let col = 0; col < maxWidth; col++) {
-            const oldChar = oldLine[col] || ' ';
-            const newChar = newLine[col] || ' ';
-            if (oldChar !== newChar) {
-                positions.push({ row, col, newChar });
-            }
-        }
+    // Update display - show up to the maximum of original length or current updates
+    const displayLines = workingLines.slice(0, Math.max(oldLines.length, Math.max(...lineIndices.slice(0, currentIndex + 1)) + 1));
+    asciiDisplay.innerHTML = displayLines.join('\n');
+
+    currentIndex++;
+    if (currentIndex < lineIndices.length) {
+      setTimeout(updateRandomLine, 60);
     }
+  }
 
-    // Shuffle positions for random update
-    for (let i = positions.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [positions[i], positions[j]] = [positions[j], positions[i]];
-    }
-
-    let currentIndex = 0;
-
-    function updateRandomChar() {
-        if (currentIndex >= positions.length) {
-            return; // Done
-        }
-
-        const pos = positions[currentIndex];
-
-        // Extend line if necessary
-        while (workingLines[pos.row].length <= pos.col) {
-            workingLines[pos.row] += ' ';
-        }
-
-        // Update character
-        workingLines[pos.row] =
-            workingLines[pos.row].substring(0, pos.col) +
-            pos.newChar +
-            workingLines[pos.row].substring(pos.col + 1);
-
-        asciiDisplay.value = workingLines.join('\n');
-
-        currentIndex++;
-        if (currentIndex < positions.length) {
-            setTimeout(updateRandomChar, 10);
-        }
-    }
-
-    updateRandomChar();
+  updateRandomLine();
 }

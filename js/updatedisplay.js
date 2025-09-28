@@ -1,21 +1,43 @@
-// Function to update ASCII display with transition effects
+// Helper function to extract plain text from HTML
+function extractPlainText(htmlContent) {
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  return tempDiv.textContent || tempDiv.innerText || '';
+}
+
+// Helper function to parse HTML content into lines
+function parseHtmlLines(htmlContent) {
+  // Handle cases where htmlContent might be undefined, null, or not a string
+  if (htmlContent === undefined || htmlContent === null) {
+    return [];
+  }
+  
+  // Convert to string if it's not already
+  const contentStr = String(htmlContent);
+  
+  // Split by newlines while preserving HTML structure
+  const lines = contentStr.split('\n');
+  return lines;
+}
+
+// Updated main function
 function updateAsciiDisplay(asciiArt, transitionType = 'instant') {
-  const currentContent = asciiDisplay.value;
+  const currentContent = asciiDisplay.innerHTML;
   const newContent = asciiArt;
 
   switch (transitionType) {
-    case 'leftToRight':
-      leftToRightTransition(currentContent, newContent);
+    case 'topToBottom':
+      topToBottomTransition(currentContent, newContent);
       break;
     case 'deleteAndWrite':
       deleteAndWriteTransition(currentContent, newContent);
       break;
     case 'random':
-      randomTransition(currentContent, newContent);
+      randomLineTransition(currentContent, newContent);
       break;
     case 'instant':
     default:
-      asciiDisplay.value = newContent;
+      asciiDisplay.innerHTML = newContent;
       break;
   }
 }

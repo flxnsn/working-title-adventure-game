@@ -89,8 +89,8 @@ function handlePlayerInput(input) {
             }
             if (!(currentScreenData[i][3] == null)) {
                 //alert(currentScreenData[i][3]);
-                //updateAsciiDisplay(currentScreenData[i][3], "instant");
-                document.getElementById('asciiDisplay').innerHTML = currentScreenData[i][3];
+                updateAsciiDisplay(currentScreenData[i][3], "random");
+                //document.getElementById('asciiDisplay').innerHTML = currentScreenData[i][3];
             }
 
         }        
