@@ -1,4 +1,4 @@
-// Replace lines from top to bottom
+// Replace lines from top to bottom in chunks
 function topToBottomTransition(oldContent, newContent) {
   const oldLines = parseHtmlLines(oldContent);
   const newLines = parseHtmlLines(newContent);
@@ -11,77 +11,100 @@ function topToBottomTransition(oldContent, newContent) {
     workingLines.push('');
   }
   
-  let currentLineIndex = 0;
+  // Create chunks of line indices
+  const chunks = createRandomChunks(maxLines);
+  let currentChunkIndex = 0;
 
-  function updateNextLine() {
-    if (currentLineIndex >= maxLines) {
+  function updateNextChunk() {
+    if (currentChunkIndex >= chunks.length) {
       return; // Done
     }
 
-    // Replace current line with new content
-    workingLines[currentLineIndex] = newLines[currentLineIndex] || '';
+    const chunk = chunks[currentChunkIndex];
     
-    // Update display
-    asciiDisplay.innerHTML = workingLines.slice(0, Math.max(oldLines.length, currentLineIndex + 1)).join('\n');
+    // Update all lines in this chunk
+    chunk.forEach(lineIndex => {
+      workingLines[lineIndex] = newLines[lineIndex] || '';
+    });
+    
+    // Update display - show up to the last line we've processed
+    const maxProcessedLine = Math.max(...chunk);
+    asciiDisplay.innerHTML = workingLines.slice(0, Math.max(oldLines.length, maxProcessedLine + 1)).join('\n');
 
-    currentLineIndex++;
-    if (currentLineIndex < maxLines) {
-      setTimeout(updateNextLine, 50);
+    currentChunkIndex++;
+    if (currentChunkIndex < chunks.length) {
+      setTimeout(updateNextChunk, 50);
     }
   }
 
-  updateNextLine();
+  updateNextChunk();
 }
 
-// Delete lines bottom to top, then write new lines top to bottom
+// Delete lines bottom to top in chunks, then write new lines top to bottom in chunks
 function deleteAndWriteTransition(oldContent, newContent) {
   const oldLines = parseHtmlLines(oldContent);
   const newLines = parseHtmlLines(newContent);
   
   let workingLines = [...oldLines];
+  
+  // Create chunks for deletion (in reverse order)
+  const deleteChunks = createRandomChunks(oldLines.length);
+  deleteChunks.reverse(); // Process from bottom to top
 
-  // Phase 1: Delete from bottom to top
+  // Phase 1: Delete from bottom to top in chunks
+  let deleteChunkIndex = 0;
+  
   function deletePhase() {
-    if (workingLines.length === 0) {
+    if (deleteChunkIndex >= deleteChunks.length) {
       // Start writing phase
       setTimeout(() => writePhase(), 100);
       return;
     }
 
-    // Remove last line
-    workingLines.pop();
+    const chunk = deleteChunks[deleteChunkIndex];
+    const linesToRemove = chunk.length;
+    
+    // Remove lines from the end
+    workingLines.splice(-linesToRemove, linesToRemove);
     asciiDisplay.innerHTML = workingLines.join('\n');
     
+    deleteChunkIndex++;
     setTimeout(deletePhase, 30);
   }
 
-  // Phase 2: Write new content line by line from top
+  // Phase 2: Write new content in chunks from top
   function writePhase() {
     let writingLines = [];
-    let currentLineIndex = 0;
+    const writeChunks = createRandomChunks(newLines.length);
+    let writeChunkIndex = 0;
 
-    function writeNextLine() {
-      if (currentLineIndex >= newLines.length) {
+    function writeNextChunk() {
+      if (writeChunkIndex >= writeChunks.length) {
         return; // Done
       }
 
-      // Add next line
-      writingLines.push(newLines[currentLineIndex]);
+      const chunk = writeChunks[writeChunkIndex];
+      
+      // Add all lines from this chunk
+      chunk.forEach(lineIndex => {
+        writingLines.push(newLines[lineIndex]);
+      });
+      
       asciiDisplay.innerHTML = writingLines.join('\n');
 
-      currentLineIndex++;
-      if (currentLineIndex < newLines.length) {
-        setTimeout(writeNextLine, 40);
+      writeChunkIndex++;
+      if (writeChunkIndex < writeChunks.length) {
+        setTimeout(writeNextChunk, 40);
       }
     }
 
-    writeNextLine();
+    writeNextChunk();
   }
 
   deletePhase();
 }
 
-// Replace lines in random order
+// Replace lines in random order in chunks
 function randomLineTransition(oldContent, newContent) {
   const oldLines = parseHtmlLines(oldContent);
   const newLines = parseHtmlLines(newContent);
@@ -111,25 +134,47 @@ function randomLineTransition(oldContent, newContent) {
     [lineIndices[i], lineIndices[j]] = [lineIndices[j], lineIndices[i]];
   }
 
+  // Create random chunks from the shuffled indices
+  const chunks = [];
   let currentIndex = 0;
+  
+  while (currentIndex < lineIndices.length) {
+    const remainingLines = lineIndices.length - currentIndex;
+    const chunkSize = Math.min(
+      remainingLines,
+      Math.floor(Math.random() * 6) + 5 // 5-10 lines per chunk
+    );
+    
+    const chunk = lineIndices.slice(currentIndex, currentIndex + chunkSize);
+    chunks.push(chunk);
+    currentIndex += chunkSize;
+  }
 
-  function updateRandomLine() {
-    if (currentIndex >= lineIndices.length) {
+  let chunkIndex = 0;
+
+  function updateRandomChunk() {
+    if (chunkIndex >= chunks.length) {
       return; // Done
     }
 
-    const lineIndex = lineIndices[currentIndex];
-    workingLines[lineIndex] = newLines[lineIndex] || '';
+    const chunk = chunks[chunkIndex];
+    
+    // Update all lines in this chunk
+    chunk.forEach(lineIndex => {
+      workingLines[lineIndex] = newLines[lineIndex] || '';
+    });
 
-    // Update display - show up to the maximum of original length or current updates
-    const displayLines = workingLines.slice(0, Math.max(oldLines.length, Math.max(...lineIndices.slice(0, currentIndex + 1)) + 1));
+    // Update display
+    const allProcessedIndices = chunks.slice(0, chunkIndex + 1).flat();
+    const maxProcessedLine = Math.max(...allProcessedIndices);
+    const displayLines = workingLines.slice(0, Math.max(oldLines.length, maxProcessedLine + 1));
     asciiDisplay.innerHTML = displayLines.join('\n');
 
-    currentIndex++;
-    if (currentIndex < lineIndices.length) {
-      setTimeout(updateRandomLine, 60);
+    chunkIndex++;
+    if (chunkIndex < chunks.length) {
+      setTimeout(updateRandomChunk, 60);
     }
   }
 
-  updateRandomLine();
+  updateRandomChunk();
 }

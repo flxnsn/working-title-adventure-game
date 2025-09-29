@@ -1,4 +1,3 @@
-// Helper function to extract plain text from HTML
 function extractPlainText(htmlContent) {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
@@ -18,6 +17,30 @@ function parseHtmlLines(htmlContent) {
   // Split by newlines while preserving HTML structure
   const lines = contentStr.split('\n');
   return lines;
+}
+
+// Helper function to create random chunks
+function createRandomChunks(totalLines, minChunkSize = 5, maxChunkSize = 10) {
+  const chunks = [];
+  let currentIndex = 0;
+  
+  while (currentIndex < totalLines) {
+    const remainingLines = totalLines - currentIndex;
+    // Random chunk size between min and max, but not exceeding remaining lines
+    const chunkSize = Math.min(
+      remainingLines,
+      Math.floor(Math.random() * (maxChunkSize - minChunkSize + 1)) + minChunkSize
+    );
+    
+    const chunk = [];
+    for (let i = 0; i < chunkSize && currentIndex < totalLines; i++) {
+      chunk.push(currentIndex);
+      currentIndex++;
+    }
+    chunks.push(chunk);
+  }
+  
+  return chunks;
 }
 
 // Updated main function
