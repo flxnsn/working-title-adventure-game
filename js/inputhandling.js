@@ -92,8 +92,8 @@ function handlePlayerInput(input) {
                 updateAsciiDisplay(currentScreenData[i][3], "random");
                 //document.getElementById('asciiDisplay').innerHTML = currentScreenData[i][3];
             }
-
-        }        
+        break;
+        }         
     }
     // bug, also triggers for empty lines? Or not... strange...
 }
