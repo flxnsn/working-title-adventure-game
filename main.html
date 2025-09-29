@@ -10,9 +10,8 @@
 </head>
 
 <body>
-
   <div class="game-container">
-        <!-- <h1>Current Screen</h1> -->
+        <h1>Current Screen</h1>
 
         <!-- ASCII Art Display Area -->
         <div id="asciiDisplay" class="display" readonly></div>
@@ -22,9 +21,10 @@
 
         <!-- Player Input Field -->
         <div class="input-container">
-          <textarea id="playerInput" class="input-field" placeholder="Input..." readonly></textarea>
+          <textarea id="playerInput" class="input-field" placeholder="Input..." readonly filter="url(#glow)"></textarea>
         </div>
   </div>
+
   <script src="js\art.js"></script>
   <script src="js\soundmanager.js"></script>
   <script src="js\transitions.js"></script>
