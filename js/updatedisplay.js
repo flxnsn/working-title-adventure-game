@@ -45,6 +45,7 @@ function createRandomChunks(totalLines, minChunkSize = 5, maxChunkSize = 10) {
 
 // Updated main function
 function updateAsciiDisplay(asciiArt, transitionType = 'instant') {
+  return;
   const currentContent = asciiDisplay.innerHTML;
   const newContent = asciiArt;
 

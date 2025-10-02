@@ -2,37 +2,46 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Untitled Adventure Game</title>
-  <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="postprocessing.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Shader Effects</title>
+    <link rel="stylesheet" href="postprocessing.css">
+    <link rel="stylesheet" href="main.css">
 </head>
 
 <body>
-  <div class="game-container" >
+    
+    <canvas id="contentCanvas"></canvas>
+    <canvas id="glCanvas"></canvas>
+     
+
+    <div class="game-container">
         <h1>Current Screen</h1>
 
         <!-- ASCII Art Display Area -->
-        <div id="asciiDisplay" class="display" readonly filter="url(#f1)"></div>
+        <!--<div id="asciiDisplay" class="display" readonly filter="url(#f1)"></div> -->
+        <canvas id="asciiArtCanvas" style="background-color: #000; border: 3px solid #333;" height="10%" ></canvas>
 
         <!-- Player Information Panel -->
         <textarea id="infoPanel" class="info-panel" readonly></textarea>
 
         <!-- Player Input Field -->
         <div class="input-container">
-          <textarea id="playerInput" class="input-field" placeholder="Input..." readonly></textarea>
+            <textarea id="playerInput" class="input-field" placeholder="Input..." readonly></textarea>
         </div>
-  </div>
+    </div>
 
-  <script src="js\art.js"></script>
-  <script src="js\soundmanager.js"></script>
-  <script src="js\transitions.js"></script>
-  <script src="js\updatedisplay.js"></script>
-  <script src="js\updateinfo.js"></script>
-  <script src="js\inputhandling.js"></script>
-  <script src="js\main.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="js\art.js"></script>
+    <script src="js\webglstuff.js"></script>
+    <script src="js\asciirendering.js"></script>
+    <script src="js\soundmanager.js"></script>
+    <script src="js\transitions.js"></script>
+    <script src="js\updatedisplay.js"></script>
+    <script src="js\updateinfo.js"></script>
+    <script src="js\inputhandling.js"></script>
+    <script src="js\main.js"></script>
+    
 </body>
 
 </html>
