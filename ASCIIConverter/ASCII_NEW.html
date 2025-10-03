@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced JPG to ASCII Art Converter with Edge Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        
+        .ascii-output {
+            font-family: 'Courier New', monospace;
+            font-size: 6px;
+            line-height: 6px;
+            white-space: pre;
+            background-color: #000;
+            padding: 10px;
+            border: 1px solid #333;
+            overflow: auto;
+            max-width: 100%;
+            margin: 10px 0;
+        }
+        
+        .step {
+            margin: 20px 0;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .step h3 {
+            color: #00ff88;
+            margin-top: 0;
+        }
+        
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #005a9e;
+        }
+        
+        .info {
+            margin: 10px 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+        
+        img {
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+        
+        canvas {
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced JPG to ASCII Art Converter with Edge Detection</h1>
+    
+    <div class="controls">
+        <input type="file" id="imageInput" accept=".jpg,.jpeg" />
+        <button onclick="convertToAscii()">Convert to ASCII with Edge Enhancement</button>
+        <div class="info">Upload a JPG image to convert it to enhanced ASCII art (will be resized to 200x100)</div>
+        
+        <hr style="margin: 20px 0; border-color: #333;">
+        
+        <button id="exportBtn" onclick="exportToJson()" style="display: none;">Export Final Result to JSON</button>
+        <input type="file" id="jsonInput" accept=".json" style="display: none;" />
+        <button onclick="document.getElementById('jsonInput').click()">Import ASCII Art from JSON</button>
+        <button onclick="toggleColorSettings()">🎨 Color Settings</button>
+        <div class="info">Import a previously saved ASCII art JSON file</div>
+        
+        <div id="colorSettings" style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #333; border-radius: 5px;">
+            <h4>Color Mapping Parameters</h4>
+            
+            <label>Black Threshold (0-255): 
+                <input type="range" id="blackThreshold" min="0" max="100" value="20" oninput="updateColorParam('blackThreshold', this.value)">
+                <span id="blackThresholdValue">20</span>
+            </label><br><br>
+            
+            <label>White Threshold (0-255): 
+                <input type="range" id="whiteThreshold" min="150" max="255" value="235" oninput="updateColorParam('whiteThreshold', this.value)">
+                <span id="whiteThresholdValue">235</span>
+            </label><br><br>
+            
+            <label>Distance Method: 
+                <select id="distanceMethod" onchange="updateColorParam('distanceMethod', this.value)">
+                    <option value="euclidean" selected>Euclidean (Standard)</option>
+                    <option value="manhattan">Manhattan (L1 Norm)</option>
+                    <option value="weighted">Weighted (Perceptual)</option>
+                </select>
+            </label><br><br>
+            
+            <label>
+                <input type="checkbox" id="useExtremeColors" checked onchange="updateColorParam('useExtremeColors', this.checked)">
+                Use Black/White for Extreme Brightness
+            </label><br><br>
+            
+            <div style="margin-top: 15px;">
+                <h5>Current Color Palette:</h5>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <div style="width: 30px; height: 30px; background-color: #000000; border: 1px solid #fff;" title="Black"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ffffff; border: 1px solid #000;" title="White"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff0000;" title="Red"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ff00;" title="Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #0000ff;" title="Blue"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ffff00;" title="Yellow"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff00ff;" title="Magenta"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ffff;" title="Cyan"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff8000;" title="Orange"></div>
+                    <div style="width: 30px; height: 30px; background-color: #8000ff;" title="Purple"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ff80;" title="Spring Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff0080;" title="Rose"></div>
+                    <div style="width: 30px; height: 30px; background-color: #8080ff;" title="Light Blue"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff8080;" title="Light Red/Pink"></div>
+                    <div style="width: 30px; height: 30px; background-color: #80ff80;" title="Light Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #808080;" title="Gray"></div>
+                </div>
+            </div>
+            
+            <button onclick="reprocessWithNewColors()" style="background-color: #28a745; margin-top: 15px;">Apply Color Changes</button>
+        </div>
+    </div>
+    
+    <div id="step1" class="step" style="display: none;">
+        <h3>Step 1: Original Image</h3>
+        <img id="originalImage" />
+    </div>
+    
+    <div id="step2" class="step" style="display: none;">
+        <h3>Step 2: Standard ASCII Conversion</h3>
+        <div id="ascii-output1" class="ascii-output"></div>
+    </div>
+    
+    <div id="step3" class="step" style="display: none;">
+        <h3>Step 3: Edge Detection Result</h3>
+        <canvas id="edgeCanvas" width="200" height="100"></canvas>
+    </div>
+    
+    <div id="step4" class="step" style="display: none;">
+        <h3>Step 4: Edge ASCII Conversion</h3>
+        <div id="ascii-output2" class="ascii-output"></div>
+    </div>
+    
+    <div id="step5" class="step" style="display: none;">
+        <h3>Step 5: Combined Final Result</h3>
+        <div id="ascii-output-final" class="ascii-output"></div>
+    </div>
+
+    <div id="step6" class="step" style="display: none;">
+        <h3>Step 6: Imported ASCII Art</h3>
+        <div id="ascii-output-imported" class="ascii-output"></div>
+    </div>
+
+    <script>
+        // ASCII characters from light to dark (based on visual density)
+        const asciiChars = ' .,:;ox%#@';
+        
+        // Edge characters based on orientation
+        const edgeChars = {
+            horizontal: '_',
+            vertical: 'I',
+            diagonal: '/',
+            antidiagonal: '\\'
+        };
+        
+        // 16-color palette: black, white, 7 base colors + 7 bright variants, gray
+        const colors = [
+            '#000000', // 0: Black (for extremely dark pixels)
+            '#800000', // 1: Dark Red
+            '#008000', // 2: Dark Green
+            '#808000', // 3: Dark Yellow/Brown
+            '#000080', // 4: Dark Blue
+            '#800080', // 5: Dark Magenta
+            '#008080', // 6: Dark Cyan
+            '#808080', // 7: Gray
+            '#ffffff', // 8: White (for extremely bright pixels)
+            '#ff0000', // 9: Bright Red
+            '#00ff00', // 10: Bright Green
+            '#ffff00', // 11: Bright Yellow
+            '#0000ff', // 12: Bright Blue
+            '#ff00ff', // 13: Bright Magenta
+            '#00ffff', // 14: Bright Cyan
+            '#c0c0c0'  // 15: Light Gray
+        ];
+
+        // Global variable to store final result
+        let finalAsciiResult = '';
+
+        // Color mapping parameters - adjust these to fine-tune color selection
+        const colorParams = {
+            // Threshold for extremely dark pixels (use black)
+            blackThreshold: 20,
+            
+            // Threshold for extremely bright pixels (use white)  
+            whiteThreshold: 235,
+            
+            // Threshold for switching between dark and bright color variants
+            brightVariantThreshold: 120,
+            
+            // Threshold for determining high vs low color channel values (0-255)  
+            channelThreshold: 127,
+            
+            // Enable/disable extreme brightness detection (black/white)
+            useExtremeColors: true,
+            
+            // Enable/disable bright variants (if false, only uses dark colors 1-7)
+            useBrightVariants: true
+        };
+
+        // Setup JSON import handler
+        document.getElementById('jsonInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                importFromJson(file);
+            }
+        });
+
+        function convertToAscii() {
+            const input = document.getElementById('imageInput');
+            
+            if (!input.files[0]) {
+                alert('Please select a JPG image first!');
+                return;
+            }
+
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            img.onload = function() {
+                // Show original image
+                document.getElementById('originalImage').src = img.src;
+                document.getElementById('step1').style.display = 'block';
+                
+                // Set canvas to 200x100
+                canvas.width = 200;
+                canvas.height = 100;
+                
+                // Draw image scaled to canvas size
+                ctx.drawImage(img, 0, 0, 200, 100);
+                
+                // Get image data
+                const imageData = ctx.getImageData(0, 0, 200, 100);
+                const pixels = imageData.data;
+                
+                // Store pixels for reprocessing with different color parameters
+                lastProcessedPixels = pixels;
+                
+                // Step 2: Generate standard ASCII
+                const standardAscii = generateStandardAscii(pixels);
+                document.getElementById('ascii-output1').innerHTML = standardAscii;
+                document.getElementById('step2').style.display = 'block';
+                
+                // Step 3: Perform edge detection
+                const edges = sobelEdgeDetection(pixels, 200, 100);
+                displayEdgeDetection(edges);
+                document.getElementById('step3').style.display = 'block';
+                
+                // Step 4: Generate edge ASCII
+                const edgeAscii = generateEdgeAscii(edges);
+                document.getElementById('ascii-output2').innerHTML = edgeAscii;
+                document.getElementById('step4').style.display = 'block';
+                
+                // Step 5: Combine both ASCII outputs
+                const combinedAscii = combineAsciiOutputs(standardAscii, edgeAscii);
+                finalAsciiResult = combinedAscii;
+                document.getElementById('ascii-output-final').innerHTML = combinedAscii;
+                document.getElementById('step5').style.display = 'block';
+                
+                // Show export button
+                document.getElementById('exportBtn').style.display = 'inline-block';
+            };
+            
+            // Load the selected image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function generateStandardAscii(pixels) {
+            let asciiArt = '';
+            
+            for (let y = 0; y < 100; y++) {
+                for (let x = 0; x < 200; x++) {
+                    const pixelIndex = (y * 200 + x) * 4;
+                    const r = pixels[pixelIndex];
+                    const g = pixels[pixelIndex + 1];
+                    const b = pixels[pixelIndex + 2];
+                    
+                    // Calculate brightness (grayscale)
+                    const brightness = Math.round((r + g + b) / 3);
+                    
+                    // Map brightness to ASCII character
+                    const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1));
+                    const asciiChar = asciiChars[charIndex];
+                    
+                    // Determine color based on RGB values
+                    const colorIndex = getColorIndex(r, g, b, colorParams);
+                    const color = colors[colorIndex];
+                    
+                    // Add colored character to output
+                    asciiArt += `<span style="color: ${color}">${asciiChar}</span>`;
+                }
+                asciiArt += '\n';
+            }
+            
+            return asciiArt;
+        }
+
+        function sobelEdgeDetection(pixels, width, height) {
+            const edges = [];
+            
+            // Sobel kernels
+            const sobelX = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+            const sobelY = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    let gx = 0, gy = 0;
+                    
+                    // Apply Sobel kernels
+                    for (let ky = -1; ky <= 1; ky++) {
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const pixelIndex = ((y + ky) * width + (x + kx)) * 4;
+                            const gray = (pixels[pixelIndex] + pixels[pixelIndex + 1] + pixels[pixelIndex + 2]) / 3;
+                            
+                            gx += gray * sobelX[ky + 1][kx + 1];
+                            gy += gray * sobelY[ky + 1][kx + 1];
+                        }
+                    }
+                    
+                    const magnitude = Math.sqrt(gx * gx + gy * gy);
+                    const angle = Math.atan2(gy, gx) * 180 / Math.PI;
+                    
+                    edges.push({
+                        x: x,
+                        y: y,
+                        magnitude: magnitude,
+                        angle: angle
+                    });
+                }
+            }
+            
+            return edges;
+        }
+
+        function displayEdgeDetection(edges) {
+            const canvas = document.getElementById('edgeCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 200, 100);
+            
+            // Draw edges
+            edges.forEach(edge => {
+                if (edge.magnitude > 30) { // Threshold for edge detection
+                    const intensity = Math.min(255, edge.magnitude);
+                    ctx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
+                    ctx.fillRect(edge.x, edge.y, 1, 1);
+                }
+            });
+        }
+
+        function generateEdgeAscii(edges) {
+            let edgeAscii = '';
+            const edgeMap = new Map();
+            
+            // Create a 2D map of edges
+            edges.forEach(edge => {
+                if (edge.magnitude > 30) { // Same threshold as display
+                    const key = `${edge.x},${edge.y}`;
+                    edgeMap.set(key, edge);
+                }
+            });
+            
+            for (let y = 0; y < 100; y++) {
+                for (let x = 0; x < 200; x++) {
+                    const key = `${x},${y}`;
+                    const edge = edgeMap.get(key);
+                    
+                    if (edge) {
+                        const char = getEdgeCharacter(edge.angle);
+                        edgeAscii += `<span style="color: #ffffff">${char}</span>`;
+                    } else {
+                        edgeAscii += ' ';
+                    }
+                }
+                edgeAscii += '\n';
+            }
+            
+            return edgeAscii;
+        }
+
+        function getEdgeCharacter(angle) {
+            // Normalize angle to 0-360
+            let normalizedAngle = angle;
+            if (normalizedAngle < 0) normalizedAngle += 180;
+            
+            // Map angle to edge character (swapped horizontal and vertical)
+            if ((normalizedAngle >= 0 && normalizedAngle < 22.5) || (normalizedAngle >= 157.5 && normalizedAngle <= 180)) {
+                return edgeChars.vertical; // 'I'
+            } else if (normalizedAngle >= 22.5 && normalizedAngle < 67.5) {
+                return edgeChars.diagonal; // '/'
+            } else if (normalizedAngle >= 67.5 && normalizedAngle < 112.5) {
+                return edgeChars.horizontal; // '_'
+            } else {
+                return edgeChars.antidiagonal; // '\'
+            }
+        }
+
+        function combineAsciiOutputs(standardAscii, edgeAscii) {
+            const standardLines = standardAscii.split('\n');
+            const edgeLines = edgeAscii.split('\n');
+            let combinedAscii = '';
+            
+            for (let i = 0; i < standardLines.length; i++) {
+                if (i >= edgeLines.length) break;
+                
+                const standardLine = standardLines[i];
+                const edgeLine = edgeLines[i];
+                let combinedLine = '';
+                
+                // Parse both lines to handle HTML spans
+                const standardChars = parseHtmlLine(standardLine);
+                const edgeChars = parseHtmlLine(edgeLine);
+                
+                for (let j = 0; j < Math.min(standardChars.length, edgeChars.length); j++) {
+                    const edgeChar = edgeChars[j];
+                    const standardChar = standardChars[j];
+                    
+                    // If edge character is NOT blank/space, use edge character; otherwise use standard
+                    if (edgeChar.char && edgeChar.char !== ' ') {
+                        combinedLine += `<span style="color: ${edgeChar.color}">${edgeChar.char}</span>`;
+                    } else {
+                        combinedLine += `<span style="color: ${standardChar.color}">${standardChar.char}</span>`;
+                    }
+                }
+                
+                combinedAscii += combinedLine + '\n';
+            }
+            
+            return combinedAscii;
+        }
+
+        function parseHtmlLine(htmlLine) {
+            const chars = [];
+            let currentIndex = 0;
+            const spanRegex = /<span style="color: ([^"]*)">([\s\S]?)<\/span>/g;
+            let match;
+            
+            // Reset regex index
+            spanRegex.lastIndex = 0;
+            
+            while ((match = spanRegex.exec(htmlLine)) !== null) {
+                // Add any plain characters before this span
+                while (currentIndex < match.index) {
+                    chars.push({
+                        color: '#ffffff',
+                        char: htmlLine[currentIndex]
+                    });
+                    currentIndex++;
+                }
+                
+                // Add the span character
+                chars.push({
+                    color: match[1],
+                    char: match[2]
+                });
+                
+                currentIndex = match.index + match[0].length;
+            }
+            
+            // Add any remaining plain characters after the last span
+            while (currentIndex < htmlLine.length) {
+                chars.push({
+                    color: '#ffffff',
+                    char: htmlLine[currentIndex]
+                });
+                currentIndex++;
+            }
+            
+            return chars;
+        }
+
+        /**
+         * Hybrid color mapping function combining brightness and hue detection
+         * Maps RGB values to black, white, or 7 base colors with bright/dark variants
+         * 
+         * @param {number} r - Red channel value (0-255)
+         * @param {number} g - Green channel value (0-255)  
+         * @param {number} b - Blue channel value (0-255)
+         * @param {object} params - Color mapping parameters
+         * @returns {number} Color index (0-15) corresponding to colors array
+         */
+        function getColorIndex(r, g, b, params = colorParams) {
+            // Step 1: Check for extreme brightness cases
+            if (params.useExtremeColors) {
+                const intensity = (r + g + b) / 3;
+                
+                // Use black for extremely dark pixels
+                if (intensity <= params.blackThreshold) {
+                    return 0; // Black
+                }
+                
+                // Use white for extremely bright pixels  
+                if (intensity >= params.whiteThreshold) {
+                    return 8; // White (moved to index 8)
+                }
+            }
+            
+            // Step 2: Determine color hue using RGB channel thresholding
+            // Quantize each color channel to binary levels (0 or 1)
+            const rLevel = r > params.channelThreshold ? 1 : 0;
+            const gLevel = g > params.channelThreshold ? 1 : 0;
+            const bLevel = b > params.channelThreshold ? 1 : 0;
+            
+            // Step 3: Map RGB levels to base color (1-7 for dark variants)
+            // Binary encoding: R=4, G=2, B=1, then remap to our color indices
+            const rgbCode = rLevel * 4 + gLevel * 2 + bLevel;
+            
+            let baseColorIndex;
+            switch (rgbCode) {
+                case 0: return 7; // 000 -> Gray (no strong color)
+                case 1: baseColorIndex = 4; break; // 001 -> Blue
+                case 2: baseColorIndex = 2; break; // 010 -> Green
+                case 3: baseColorIndex = 6; break; // 011 -> Cyan
+                case 4: baseColorIndex = 1; break; // 100 -> Red
+                case 5: baseColorIndex = 5; break; // 101 -> Magenta
+                case 6: baseColorIndex = 3; break; // 110 -> Yellow
+                case 7: return 15; // 111 -> Light Gray (all colors strong)
+            }
+            
+            // Step 4: Determine if we should use bright variant
+            if (params.useBrightVariants) {
+                const intensity = (r + g + b) / 3;
+                const useBrightVariant = intensity > params.brightVariantThreshold;
+                
+                if (useBrightVariant) {
+                    // Add 8 to get bright variant (9-14), but adjust for our layout
+                    // Dark colors are at indices 1-6, bright colors at 9-14
+                    baseColorIndex += 8;
+                }
+            }
+            
+            // Debug logging (uncomment to see color mapping process)
+            // console.log(`RGB(${r},${g},${b}) -> levels:(${rLevel},${gLevel},${bLevel}) -> code:${rgbCode} -> base:${baseColorIndex} -> intensity:${((r+g+b)/3).toFixed(1)}`);
+            
+            return baseColorIndex;
+        }
+
+        function exportToJson() {
+            if (!finalAsciiResult) {
+                alert('No ASCII art to export! Please convert an image first.');
+                return;
+            }
+
+            const asciiData = {
+                timestamp: new Date().toISOString(),
+                dimensions: {
+                    width: 200,
+                    height: 100
+                },
+                asciiArt: finalAsciiResult,
+                metadata: {
+                    version: "1.0",
+                    type: "enhanced-ascii-with-edges"
+                }
+            };
+
+            const jsonString = JSON.stringify(asciiData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-art-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+                    
+                    // Validate JSON structure
+                    if (!jsonData.asciiArt) {
+                        throw new Error('Invalid ASCII art JSON file - missing asciiArt field');
+                    }
+
+                    // Display imported ASCII art
+                    document.getElementById('ascii-output-imported').innerHTML = jsonData.asciiArt;
+                    document.getElementById('step6').style.display = 'block';
+                    
+                    // Show metadata if available
+                    let metadataText = '';
+                    if (jsonData.timestamp) {
+                        metadataText += `Created: ${new Date(jsonData.timestamp).toLocaleString()}<br>`;
+                    }
+                    if (jsonData.dimensions) {
+                        metadataText += `Dimensions: ${jsonData.dimensions.width}x${jsonData.dimensions.height}<br>`;
+                    }
+                    if (jsonData.metadata && jsonData.metadata.version) {
+                        metadataText += `Version: ${jsonData.metadata.version}`;
+                    }
+                    
+                    if (metadataText) {
+                        const metadataDiv = document.createElement('div');
+                        metadataDiv.innerHTML = metadataText;
+                        metadataDiv.style.color = '#888';
+                        metadataDiv.style.fontSize = '12px';
+                        metadataDiv.style.marginBottom = '10px';
+                        
+                        const step6 = document.getElementById('step6');
+                        const outputDiv = document.getElementById('ascii-output-imported');
+                        step6.insertBefore(metadataDiv, outputDiv);
+                    }
+                    
+                    // Scroll to imported result
+                    document.getElementById('step6').scrollIntoView({ behavior: 'smooth' });
+                    
+                } catch (error) {
+                    alert('Error importing JSON file: ' + error.message);
+                    console.error('JSON import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleColorSettings() {
+            const settings = document.getElementById('colorSettings');
+            settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateColorParam(paramName, value) {
+            // Convert string values to appropriate types
+            if (paramName === 'blackThreshold' || paramName === 'whiteThreshold' || paramName === 'brightVariantThreshold' || paramName === 'channelThreshold') {
+                colorParams[paramName] = parseInt(value);
+                document.getElementById(paramName + 'Value').textContent = value;
+            } else if (paramName === 'useExtremeColors' || paramName === 'useBrightVariants') {
+                colorParams[paramName] = value;
+            } else {
+                colorParams[paramName] = value;
+            }
+        }
+
+        // Global variables to store processed data for reprocessing
+        let lastProcessedPixels = null;
+
+        function reprocessWithNewColors() {
+            if (!lastProcessedPixels) {
+                alert('No image data available. Please convert an image first.');
+                return;
+            }
+
+            // Regenerate standard ASCII with new color parameters
+            const standardAscii = generateStandardAscii(lastProcessedPixels);
+            document.getElementById('ascii-output1').innerHTML = standardAscii;
+
+            // If we have edge data, regenerate the combination
+            const edgeAscii = document.getElementById('ascii-output2').innerHTML;
+            if (edgeAscii) {
+                const combinedAscii = combineAsciiOutputs(standardAscii, edgeAscii);
+                finalAsciiResult = combinedAscii;
+                document.getElementById('ascii-output-final').innerHTML = combinedAscii;
+            }
+        }
+    </script>
+</body>
+</html>
