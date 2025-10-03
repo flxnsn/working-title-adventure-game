@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced JPG to ASCII Art Converter with Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+
+        .ascii-canvas {
+            background-color: #000;
+            border: 1px solid #333;
+            margin: 10px 0;
+            image-rendering: crisp-edges;
+        }
+
+        .step {
+            margin: 20px 0;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .step h3 {
+            color: #00ff88;
+            margin-top: 0;
+        }
+
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #005a9e;
+        }
+
+        .info {
+            margin: 10px 0;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        img {
+            max-width: 400px;
+            border: 1px solid #333;
+        }
+
+        canvas {
+            border: 1px solid #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Enhanced JPG to ASCII Art Converter (Canvas-Based)</h1>
+
+    <div class="controls">
+        <input type="file" id="imageInput" accept=".jpg,.jpeg" />
+        <button onclick="convertToAscii()">Convert to ASCII with Edge Enhancement</button>
+        <div class="info">Upload a JPG image to convert it to enhanced ASCII art (will be resized to 200x100)</div>
+
+        <hr style="margin: 20px 0; border-color: #333;">
+
+        <button id="exportBtn" onclick="exportToJson()" style="display: none;">Export Final Result to JSON</button>
+        <input type="file" id="jsonInput" accept=".json" style="display: none;" />
+        <button onclick="document.getElementById('jsonInput').click()">Import ASCII Art from JSON</button>
+        <button onclick="toggleColorSettings()">🎨 Color Settings</button>
+        <div class="info">Import a previously saved ASCII art JSON file</div>
+
+        <div id="colorSettings"
+            style="display: none; margin-top: 15px; padding: 15px; border: 1px solid #333; border-radius: 5px;">
+            <h4>Color Mapping Parameters</h4>
+
+            <label>Black Threshold (0-255):
+                <input type="range" id="blackThreshold" min="0" max="100" value="15"
+                    oninput="updateColorParam('blackThreshold', this.value)">
+                <span id="blackThresholdValue">15</span>
+            </label><br><br>
+
+
+            <label>Light/Dark Variation Threshold (0-255):
+                <input type="range" id="variationThreshold" min="0" max="255" value="128"
+                    oninput="updateColorParam('variationThreshold', this.value)">
+                <span id="variationThresholdValue">128</span>
+            </label><br><br>
+
+
+            <label>White Threshold (0-255):
+                <input type="range" id="whiteThreshold" min="150" max="255" value="230"
+                    oninput="updateColorParam('whiteThreshold', this.value)">
+                <span id="whiteThresholdValue">230</span>
+            </label><br><br>
+
+            <label>Distance Method:
+                <select id="distanceMethod" onchange="updateColorParam('distanceMethod', this.value)">
+                    <option value="euclidean" selected>Euclidean (Standard)</option>
+                    <option value="manhattan">Manhattan (L1 Norm)</option>
+                    <option value="weighted">Weighted (Perceptual)</option>
+                </select>
+            </label><br><br>
+
+            <label>
+                <input type="checkbox" id="useExtremeColors" checked
+                    onchange="updateColorParam('useExtremeColors', this.checked)">
+                Use Black/White for Extreme Brightness
+            </label><br><br>
+
+            <div style="margin-top: 15px;">
+                <h5>Current Color Palette:</h5>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <div style="width: 30px; height: 30px; background-color: #000000; border: 1px solid #fff;"
+                        title="Black"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ffffff; border: 1px solid #000;"
+                        title="White"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff0000;" title="Red"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ff00;" title="Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #0000ff;" title="Blue"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ffff00;" title="Yellow"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff00ff;" title="Magenta"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ffff;" title="Cyan"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff8000;" title="Orange"></div>
+                    <div style="width: 30px; height: 30px; background-color: #8000ff;" title="Purple"></div>
+                    <div style="width: 30px; height: 30px; background-color: #00ff80;" title="Spring Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff0080;" title="Rose"></div>
+                    <div style="width: 30px; height: 30px; background-color: #8080ff;" title="Light Blue"></div>
+                    <div style="width: 30px; height: 30px; background-color: #ff8080;" title="Light Red/Pink"></div>
+                    <div style="width: 30px; height: 30px; background-color: #80ff80;" title="Light Green"></div>
+                    <div style="width: 30px; height: 30px; background-color: #808080;" title="Gray"></div>
+                </div>
+            </div>
+
+            <button onclick="reprocessWithNewColors()" style="background-color: #28a745; margin-top: 15px;">Apply Color
+                Changes</button>
+        </div>
+    </div>
+
+    <div id="step1" class="step" style="display: none;">
+        <h3>Step 1: Original Image</h3>
+        <img id="originalImage" />
+    </div>
+
+    <div id="step2" class="step" style="display: none;">
+        <h3>Step 2: Standard ASCII Conversion</h3>
+        <canvas id="asciiCanvas1" class="ascii-canvas"></canvas>
+    </div>
+
+    <div id="step3" class="step" style="display: none;">
+        <h3>Step 3: Edge Detection Result</h3>
+        <canvas id="edgeCanvas" width="200" height="100"></canvas>
+    </div>
+
+    <div id="step4" class="step" style="display: none;">
+        <h3>Step 4: Edge ASCII Conversion</h3>
+        <canvas id="asciiCanvas2" class="ascii-canvas"></canvas>
+    </div>
+
+    <div id="step5" class="step" style="display: none;">
+        <h3>Step 5: Combined Final Result</h3>
+        <canvas id="asciiCanvasFinal" class="ascii-canvas"></canvas>
+    </div>
+
+    <div id="step6" class="step" style="display: none;">
+        <h3>Step 6: Imported ASCII Art</h3>
+        <canvas id="asciiCanvasImported" class="ascii-canvas"></canvas>
+    </div>
+
+    <script>
+        const asciiChars = '.`-,:;~+vxoXAH%$O@';
+
+        const edgeChars = {
+            horizontal: '_',
+            vertical: 'I',
+            diagonal: '/',
+            antidiagonal: '\\'
+        };
+
+        // Centralized color palette with 32 entries (16 base + 16 light/dark variations)
+        const baseColors = [
+            '#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
+            '#ff8000', '#8000ff', '#00ff80', '#ff0080', '#8080ff', '#ff8080', '#80ff80', '#808080'
+        ];
+
+        const colors = [];
+
+        // Generate dark and light variations
+        baseColors.forEach(hex => {
+            const { r, g, b } = hexToRgb(hex);
+            const dark = `rgb(${r * 0.6}, ${g * 0.6}, ${b * 0.6})`;
+            const light = `rgb(${Math.min(r * 1.4, 255)}, ${Math.min(g * 1.4, 255)}, ${Math.min(b * 1.4, 255)})`;
+            colors.push(dark, light);  // total of 32 colors
+        });
+
+
+        let finalAsciiData = null;
+        let lastProcessedPixels = null;
+        let lastEdgeData = null;
+
+        const colorParams = {
+            blackThreshold: 15,
+            whiteThreshold: 230,
+            distanceMethod: 'euclidean',
+            colorWeights: { r: 0.3, g: 0.59, b: 0.11 },
+            useExtremeColors: true,
+            variationThreshold: 128 // New: midpoint brightness for light/dark variation
+        };
+
+
+        const charWidth = 6;
+        const charHeight = 10;
+
+        document.getElementById('jsonInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                importFromJson(file);
+            }
+        });
+
+        function convertToAscii() {
+            const input = document.getElementById('imageInput');
+
+            if (!input.files[0]) {
+                alert('Please select a JPG image first!');
+                return;
+            }
+
+            const img = new Image();
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            img.onload = function () {
+                document.getElementById('originalImage').src = img.src;
+                document.getElementById('step1').style.display = 'block';
+
+                canvas.width = 200;
+                canvas.height = 100;
+                ctx.drawImage(img, 0, 0, 200, 100);
+
+                const imageData = ctx.getImageData(0, 0, 200, 100);
+                const pixels = imageData.data;
+                lastProcessedPixels = pixels;
+
+                const standardAscii = generateStandardAsciiData(pixels);
+                renderAsciiToCanvas('asciiCanvas1', standardAscii);
+                document.getElementById('step2').style.display = 'block';
+
+                const edges = newEdgeDetection(pixels, 200, 100);
+                lastEdgeData = edges;
+                displayEdgeDetection(edges);
+                document.getElementById('step3').style.display = 'block';
+
+                const edgeAscii = generateEdgeAsciiData(edges);
+                renderAsciiToCanvas('asciiCanvas2', edgeAscii);
+                document.getElementById('step4').style.display = 'block';
+
+                const combinedAscii = combineAsciiData(standardAscii, edgeAscii);
+                finalAsciiData = combinedAscii;
+                renderAsciiToCanvas('asciiCanvasFinal', combinedAscii);
+                document.getElementById('step5').style.display = 'block';
+
+                document.getElementById('exportBtn').style.display = 'inline-block';
+            };
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function generateStandardAsciiData(pixels) {
+            const width = 200;
+            const height = 100;
+            const chars = new Array(width * height);
+            const colorIndices = new Array(width * height);
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    const pixelIndex = idx * 4;
+                    const r = pixels[pixelIndex];
+                    const g = pixels[pixelIndex + 1];
+                    const b = pixels[pixelIndex + 2];
+
+                    const brightness = Math.round((r + g + b) / 3);
+                    const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1));
+                    chars[idx] = asciiChars[charIndex];
+
+                    colorIndices[idx] = getColorIndex(r, g, b, colorParams);
+                }
+            }
+
+            return { width, height, chars, colorIndices };
+        }
+
+        function newEdgeDetection(pixels, width, height, opts = {}) {
+            const { threshold = 150, thin = true } = opts;
+            const edges = [];
+
+            const Kx = [[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]];
+            const Ky = [[-1, -2, -1], [0, 0, 0], [1, 2, 1]];
+
+            const grayAt = (x, y) => {
+                const i = (y * width + x) * 4;
+                return (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+            };
+
+            const mag = Array.from({ length: height }, () => new Array(width).fill(0));
+            const ang = Array.from({ length: height }, () => new Array(width).fill(0));
+
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    let gx = 0, gy = 0;
+                    for (let ky = -1; ky <= 1; ky++)
+                        for (let kx = -1; kx <= 1; kx++) {
+                            const g = grayAt(x + kx, y + ky);
+                            gx += g * Kx[ky + 1][kx + 1];
+                            gy += g * Ky[ky + 1][kx + 1];
+                        }
+                    mag[y][x] = Math.hypot(gx, gy);
+                    ang[y][x] = Math.atan2(gy, gx);
+                }
+            }
+
+            const isEdgeMax = (x, y) => {
+                const angle = ang[y][x];
+                const m = mag[y][x];
+                const dx = Math.round(Math.cos(angle));
+                const dy = Math.round(Math.sin(angle));
+                const nx = x + dx, ny = y + dy;
+                const px = x - dx, py = y - dy;
+                return m >= (mag[ny]?.[nx] ?? 0) && m >= (mag[py]?.[px] ?? 0);
+            };
+
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    if (mag[y][x] < threshold) continue;
+                    if (thin && !isEdgeMax(x, y)) continue;
+
+                    edges.push({
+                        x, y,
+                        magnitude: mag[y][x],
+                        angle: ang[y][x] * 180 / Math.PI
+                    });
+                }
+            }
+
+            return edges;
+        }
+
+        function displayEdgeDetection(edges) {
+            const canvas = document.getElementById('edgeCanvas');
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, 200, 100);
+
+            edges.forEach(edge => {
+                if (edge.magnitude > 30) {
+                    const intensity = Math.min(255, edge.magnitude);
+                    ctx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
+                    ctx.fillRect(edge.x, edge.y, 1, 1);
+                }
+            });
+        }
+
+        function generateEdgeAsciiData(edges) {
+            const width = 200;
+            const height = 100;
+            const chars = new Array(width * height).fill(' ');
+            const colorIndices = new Array(width * height).fill(1);
+
+            edges.forEach(edge => {
+                if (edge.magnitude > 30) {
+                    const idx = edge.y * width + edge.x;
+                    chars[idx] = getEdgeCharacter(edge.angle);
+                    colorIndices[idx] = 1;
+                }
+            });
+
+            return { width, height, chars, colorIndices };
+        }
+
+        function getEdgeCharacter(angle) {
+            let normalizedAngle = angle;
+            if (normalizedAngle < 0) normalizedAngle += 180;
+
+            if ((normalizedAngle >= 0 && normalizedAngle < 22.5) || (normalizedAngle >= 157.5 && normalizedAngle <= 180)) {
+                return edgeChars.vertical;
+            } else if (normalizedAngle >= 22.5 && normalizedAngle < 67.5) {
+                return edgeChars.diagonal;
+            } else if (normalizedAngle >= 67.5 && normalizedAngle < 112.5) {
+                return edgeChars.horizontal;
+            } else {
+                return edgeChars.antidiagonal;
+            }
+        }
+
+        function combineAsciiData(standardData, edgeData) {
+            const width = standardData.width;
+            const height = standardData.height;
+            const chars = new Array(width * height);
+            const colorIndices = new Array(width * height);
+
+            const denseDarkChars = ['+', 'v', 'x', 'o', 'X', 'A', 'H', '%', '$', 'O', '@'];
+
+            for (let i = 0; i < chars.length; i++) {
+                if (edgeData.chars[i] !== ' ') {
+                    if (denseDarkChars.includes(standardData.chars[i]) && edgeData.chars[i] === '_') {
+                        chars[i] = '=';
+                    } else {
+                        chars[i] = edgeData.chars[i];
+                    }
+                    colorIndices[i] = standardData.colorIndices[i];
+                } else {
+                    chars[i] = standardData.chars[i];
+                    colorIndices[i] = standardData.colorIndices[i];
+                }
+            }
+
+            return { width, height, chars, colorIndices };
+        }
+
+        function renderAsciiToCanvas(canvasId, asciiData) {
+            const canvas = document.getElementById(canvasId);
+            canvas.width = asciiData.width * charWidth;
+            canvas.height = asciiData.height * charHeight;
+
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.font = '10px "Courier New", monospace';
+            ctx.textBaseline = 'top';
+
+            for (let y = 0; y < asciiData.height; y++) {
+                for (let x = 0; x < asciiData.width; x++) {
+                    const idx = y * asciiData.width + x;
+                    const char = asciiData.chars[idx];
+                    const colorIndex = asciiData.colorIndices[idx];
+
+                    ctx.fillStyle = colors[colorIndex];
+                    ctx.fillText(char, x * charWidth, y * charHeight);
+                }
+            }
+        }
+
+        function getColorIndex(r, g, b, params = colorParams) {
+            const avgBrightness = (r + g + b) / 3;
+
+            if (params.useExtremeColors) {
+                if (avgBrightness <= params.blackThreshold) return 0;  // black
+                if (avgBrightness >= params.whiteThreshold) return 1;  // white
+            }
+
+            let minDistance = Infinity;
+            let closestIndex = 0;
+
+            // Only compare against baseColors
+            for (let i = 0; i < baseColors.length; i++) {
+                const base = hexToRgb(baseColors[i]);
+                const distance = calculateColorDistance(r, g, b, base.r, base.g, base.b, params);
+
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    const variationOffset = avgBrightness > params.variationThreshold ? 1 : 0;
+                    closestIndex = i * 2 + variationOffset;
+                }
+            }
+
+            return closestIndex;
+        }
+
+
+        function calculateColorDistance(r1, g1, b1, r2, g2, b2, params) {
+            switch (params.distanceMethod) {
+                case 'manhattan':
+                    return Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
+
+                case 'weighted':
+                    const wr = params.colorWeights.r;
+                    const wg = params.colorWeights.g;
+                    const wb = params.colorWeights.b;
+                    return Math.sqrt(
+                        wr * Math.pow(r1 - r2, 2) +
+                        wg * Math.pow(g1 - g2, 2) +
+                        wb * Math.pow(b1 - b2, 2)
+                    );
+
+                case 'euclidean':
+                default:
+                    return Math.sqrt(
+                        Math.pow(r1 - r2, 2) +
+                        Math.pow(g1 - g2, 2) +
+                        Math.pow(b1 - b2, 2)
+                    );
+            }
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function exportToJson() {
+            if (!finalAsciiData) {
+                alert('No ASCII art to export! Please convert an image first.');
+                return;
+            }
+
+            const asciiExport = {
+                timestamp: new Date().toISOString(),
+                dimensions: {
+                    width: finalAsciiData.width,
+                    height: finalAsciiData.height
+                },
+                chars: finalAsciiData.chars.join(''),
+                colorIndices: finalAsciiData.colorIndices.join(','),
+                metadata: {
+                    version: "2.0",
+                    type: "canvas-ascii-with-edges"
+                }
+            };
+
+            const jsonString = JSON.stringify(asciiExport);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ascii-art-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importFromJson(file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const jsonData = JSON.parse(e.target.result);
+
+                    if (!jsonData.chars || !jsonData.colorIndices) {
+                        throw new Error('Invalid ASCII art JSON file - missing data fields');
+                    }
+
+                    const importedData = {
+                        width: jsonData.dimensions.width,
+                        height: jsonData.dimensions.height,
+                        chars: jsonData.chars,
+                        colorIndices: jsonData.colorIndices
+                    };
+
+                    renderAsciiToCanvas('asciiCanvasImported', importedData);
+                    document.getElementById('step6').style.display = 'block';
+                    document.getElementById('step6').scrollIntoView({ behavior: 'smooth' });
+
+                } catch (error) {
+                    alert('Error importing JSON file: ' + error.message);
+                    console.error('JSON import error:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function toggleColorSettings() {
+            const settings = document.getElementById('colorSettings');
+            settings.style.display = settings.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function updateColorParam(paramName, value) {
+            if (['blackThreshold', 'whiteThreshold', 'variationThreshold'].includes(paramName)) {
+                colorParams[paramName] = parseInt(value);
+                document.getElementById(paramName + 'Value').textContent = value;
+            } else if (paramName === 'useExtremeColors') {
+                colorParams[paramName] = value;
+            } else {
+                colorParams[paramName] = value;
+            }
+        }
+
+
+        function reprocessWithNewColors() {
+            if (!lastProcessedPixels) {
+                alert('No image data available. Please convert an image first.');
+                return;
+            }
+
+            const standardAscii = generateStandardAsciiData(lastProcessedPixels);
+            renderAsciiToCanvas('asciiCanvas1', standardAscii);
+
+            if (lastEdgeData) {
+                const edgeAscii = generateEdgeAsciiData(lastEdgeData);
+                const combinedAscii = combineAsciiData(standardAscii, edgeAscii);
+                finalAsciiData = combinedAscii;
+                renderAsciiToCanvas('asciiCanvasFinal', combinedAscii);
+            }
+        }
+        function generateColorSwatches() {
+            const container = document.querySelector('#colorSettings div[style*="display: flex"]');
+            container.innerHTML = ''; // Clear existing content
+
+            colors.forEach((color, index) => {
+                const div = document.createElement('div');
+                div.style.width = '30px';
+                div.style.height = '30px';
+                div.style.backgroundColor = color;
+                div.style.border = '1px solid #000';
+                div.title = `Color ${index}`;
+                container.appendChild(div);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', generateColorSwatches);
+
+    </script>
+</body>
+
+</html>
