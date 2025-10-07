@@ -60,11 +60,11 @@ document.addEventListener('keydown', function (e) {
 });
 
 var TestArray = [
-                [["mountain", "mountains"],["false"],["mountain range"],[testArt]],
-                [["castle"],["not"],["ross castle, ireland"],[castle]],
-                [["lighthouse", "take path"],[],["lighthouse"],[lighthouse]],
-                [["back", "return"],[],["Welcome to Untilted Adventure Game\!\nEnter mountains for mountains\nEnter castle for castle\nEnter lighthouse for lighthouse\nEnter cat for cat"],[bench]],
-                [["cat", "kitty"],[],["kitty"],[kitty]],
+                [["mountain", "mountains"],["false"],["mountain range"],[myAsciiArt]],
+                [["castle"],["not"],["ross castle, ireland"],[woods]],
+                [["lighthouse", "take path"],[],["lighthouse"],[]],
+                [["back", "return"],[],["Welcome to Untilted Adventure Game\!\nEnter mountains for mountains\nEnter castle for castle\nEnter lighthouse for lighthouse\nEnter cat for cat"],[]],
+                [["cat", "kitty"],[],["kitty"],[]],
 ];
 
 var currentScreenData = TestArray;

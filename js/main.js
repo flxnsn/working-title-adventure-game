@@ -9,7 +9,7 @@ const playerInput = document.getElementById('playerInput');
 
 // Initialize game with test data
 function initializeGame() {
-    updateAsciiDisplay(bench, "init");
+    updateAsciiDisplay(myAsciiArt, "init");
     updateInfoPanel(`Welcome to Untilted Adventure Game!
 Enter mountains for mountains
 Enter castle for castle
