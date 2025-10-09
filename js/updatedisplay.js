@@ -7,6 +7,11 @@ const asciiColors = [
 const charWidth = 6;
 const charHeight = 10;
 
+// Global variables for animation
+let currentAsciiArt = null;
+let currentFrameIndex = 0;
+let animationLoopInterval = null;
+
 // Helper function to create random chunks
 function createRandomChunks(totalLines, minChunkSize = 5, maxChunkSize = 10) {
   const chunks = [];
@@ -40,8 +45,10 @@ function renderAsciiLines(asciiData, lineIndices = null) {
 
   const width = asciiData.dimensions.width;
   const height = asciiData.dimensions.height;
-  const chars = asciiData.chars.split('');
-  const colorIndices = asciiData.colorIndices.split(',').map(Number);
+  
+  // Extract chars and colorIndices from frame[0]
+  const chars = asciiData.frames[0][0].split('');
+  const colorIndices = asciiData.frames[0][1].split(',').map(Number);
 
   const ctx = canvas.getContext('2d');
   ctx.font = '10px "Courier New", monospace';
@@ -84,7 +91,14 @@ function clearAsciiLines(asciiData, lineIndices) {
 }
 
 // Main update function
-function updateAsciiDisplay(asciiData, transitionType = 'instant', soundManager = null) {
+function updateAsciiDisplay(asciiData, transitionType = 'instant') {
+  // Stop any existing animation loop
+  stopAnimationLoop();
+  
+  // Update current art reference
+  currentAsciiArt = asciiData;
+  currentFrameIndex = 0;
+  
   const canvas = document.getElementById('asciiArtCanvas');
   if (!canvas) {
     console.error(`Canvas with id 'asciiArtCanvas' not found`);
@@ -103,6 +117,7 @@ function updateAsciiDisplay(asciiData, transitionType = 'instant', soundManager 
   if (soundManager) {
     if (transitionType === "init") {
       let hddsounds = ["sounds/HDD/Startup1.mp3", "sounds/HDD/Startup2.mp3"];
+      
       let sound = hddsounds[Math.floor(Math.random() * hddsounds.length)];
       soundManager.playSoundRandomPitch(sound);
     } else if (transitionType !== 'instant') {
@@ -117,36 +132,38 @@ function updateAsciiDisplay(asciiData, transitionType = 'instant', soundManager 
     }
   }
 
-  // Execute transition
+  // Execute transition, then start animation loop
   if (transitionType === "init") {
-    topToBottomTransition(asciiData);
+    topToBottomTransition(asciiData, () => startAnimationLoop());
   } else {
     switch (transitionType) {
       case 'topToBottom':
-        topToBottomTransition(asciiData);
+        topToBottomTransition(asciiData, () => startAnimationLoop());
         break;
       case 'deleteAndWrite':
-        deleteAndWriteTransition(asciiData);
+        deleteAndWriteTransition(asciiData, () => startAnimationLoop());
         break;
       case 'random':
-        randomLineTransition(asciiData);
+        randomLineTransition(asciiData, () => startAnimationLoop());
         break;
       case 'instant':
       default:
         renderAsciiLines(asciiData);
+        startAnimationLoop();
         break;
     }
   }
 }
 
 // Replace lines from top to bottom in chunks
-function topToBottomTransition(asciiData) {
+function topToBottomTransition(asciiData, onComplete) {
   const height = asciiData.dimensions.height;
   const chunks = createRandomChunks(height);
   let currentChunkIndex = 0;
 
   function updateNextChunk() {
     if (currentChunkIndex >= chunks.length) {
+      if (onComplete) onComplete();
       return; // Done
     }
 
@@ -156,6 +173,8 @@ function topToBottomTransition(asciiData) {
     currentChunkIndex++;
     if (currentChunkIndex < chunks.length) {
       setTimeout(updateNextChunk, 50);
+    } else {
+      if (onComplete) onComplete();
     }
   }
 
@@ -163,7 +182,7 @@ function topToBottomTransition(asciiData) {
 }
 
 // Delete lines bottom to top in chunks, then write new lines top to bottom in chunks
-function deleteAndWriteTransition(asciiData) {
+function deleteAndWriteTransition(asciiData, onComplete) {
   const height = asciiData.dimensions.height;
   const deleteChunks = createRandomChunks(height);
   deleteChunks.reverse(); // Process from bottom to top
@@ -193,6 +212,7 @@ function deleteAndWriteTransition(asciiData) {
 
     function writeNextChunk() {
       if (writeChunkIndex >= writeChunks.length) {
+        if (onComplete) onComplete();
         return; // Done
       }
 
@@ -202,6 +222,8 @@ function deleteAndWriteTransition(asciiData) {
       writeChunkIndex++;
       if (writeChunkIndex < writeChunks.length) {
         setTimeout(writeNextChunk, 40);
+      } else {
+        if (onComplete) onComplete();
       }
     }
 
@@ -212,7 +234,7 @@ function deleteAndWriteTransition(asciiData) {
 }
 
 // Replace lines in random order in chunks
-function randomLineTransition(asciiData) {
+function randomLineTransition(asciiData, onComplete) {
   const height = asciiData.dimensions.height;
 
   // Create array of all line indices
@@ -244,6 +266,7 @@ function randomLineTransition(asciiData) {
 
   function updateRandomChunk() {
     if (chunkIndex >= chunks.length) {
+      if (onComplete) onComplete();
       return; // Done
     }
 
@@ -253,6 +276,8 @@ function randomLineTransition(asciiData) {
     chunkIndex++;
     if (chunkIndex < chunks.length) {
       setTimeout(updateRandomChunk, 60);
+    } else {
+      if (onComplete) onComplete();
     }
   }
 
@@ -262,4 +287,43 @@ function randomLineTransition(asciiData) {
 // Full display function (for reference/compatibility)
 function displayAsciiArt(asciiData) {
   updateAsciiDisplay(asciiData, 'instant');
+}
+
+
+
+// Helper function to render a specific frame
+function renderAsciiFrame(asciiData, frameIndex) {
+  const canvas = document.getElementById('asciiArtCanvas');
+  if (!canvas) return;
+
+  const width = asciiData.dimensions.width;
+  const height = asciiData.dimensions.height;
+  
+  // Check if frame exists
+  if (!asciiData.frames[frameIndex]) {
+    console.error(`Frame ${frameIndex} does not exist`);
+    return;
+  }
+  
+  const chars = asciiData.frames[frameIndex][0].split('');
+  const colorIndices = asciiData.frames[frameIndex][1].split(',').map(Number);
+
+  const ctx = canvas.getContext('2d');
+  ctx.font = '10px "Courier New", monospace';
+  ctx.textBaseline = 'top';
+
+  // Clear canvas
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Render all characters
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = y * width + x;
+      const char = chars[idx];
+      const colorIndex = colorIndices[idx];
+      ctx.fillStyle = asciiColors[colorIndex];
+      ctx.fillText(char, x * charWidth, y * charHeight);
+    }
+  }
 }

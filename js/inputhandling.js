@@ -60,10 +60,10 @@ document.addEventListener('keydown', function (e) {
 });
 
 var TestArray = [
-                [["mountain", "mountains"],["false"],["mountain range"],[myAsciiArt]],
-                [["castle"],["not"],["ross castle, ireland"],[woods]],
+                [["mountain", "mountains"],["false"],["mountain range"],myAsciiArt],
+                [["castle"],["not"],["ross castle, ireland"],woods],
                 [["lighthouse", "take path"],[],["lighthouse"],[]],
-                [["back", "return"],[],["Welcome to Untilted Adventure Game\!\nEnter mountains for mountains\nEnter castle for castle\nEnter lighthouse for lighthouse\nEnter cat for cat"],[]],
+                [["back", "return"],[],["Welcome to Untitled Adventure Game\!\nEnter mountains for mountains\nEnter castle for castle\nEnter lighthouse for lighthouse\nEnter cat for cat"],[]],
                 [["cat", "kitty"],[],["kitty"],[]],
 ];
 
